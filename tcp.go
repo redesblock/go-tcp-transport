@@ -102,6 +102,13 @@ func WithConnectionTimeout(d time.Duration) Option {
 	}
 }
 
+func WithLocalAddr(localAddr ma.Multiaddr) Option {
+	return func(tr *TcpTransport) error {
+		tr.localAddr = localAddr
+		return nil
+	}
+}
+
 // TcpTransport is the TCP transport.
 type TcpTransport struct {
 	// Connection upgrader for upgrading insecure stream connections to
@@ -115,6 +122,8 @@ type TcpTransport struct {
 	connectTimeout time.Duration
 
 	reuse rtpt.Transport
+
+	localAddr ma.Multiaddr
 }
 
 var _ transport.Transport = &TcpTransport{}
@@ -154,6 +163,7 @@ func (t *TcpTransport) maDial(ctx context.Context, raddr ma.Multiaddr) (manet.Co
 		return t.reuse.DialContext(ctx, raddr)
 	}
 	var d manet.Dialer
+	d.LocalAddr = t.localAddr
 	return d.DialContext(ctx, raddr)
 }
 
